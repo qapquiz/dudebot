@@ -17,7 +17,11 @@ pub async fn verify(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-#[poise::command(prefix_command, slash_command, guild_only, aliases("create_verify_message"))]
+#[poise::command(
+    prefix_command,
+    slash_command,
+    guild_only,
+)]
 pub async fn create_verify_message(ctx: Context<'_>) -> Result<(), Error> {
     let embed = CreateEmbed::new()
         .title("Welcome to noodles ≈ 🍜")

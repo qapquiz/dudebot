@@ -1,10 +1,7 @@
 mod commands;
 
 use dotenv::dotenv;
-use poise::{
-    framework,
-    serenity_prelude::{self as serenity, futures::task::waker, CacheHttp, MessageId},
-};
+use poise::serenity_prelude::{self as serenity, CacheHttp, MessageId};
 use std::env::var;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -96,11 +93,10 @@ async fn event_handler(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
     _framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data
+    data: &Data,
 ) -> Result<(), Error> {
     if let serenity::FullEvent::ReactionAdd { add_reaction } = event {
-        if add_reaction.message_id == data.verifed_message_id
-            && add_reaction.emoji.unicode_eq("✅")
+        if add_reaction.message_id == data.verifed_message_id && add_reaction.emoji.unicode_eq("✅")
         {
             let guild_id = add_reaction.guild_id.unwrap();
             let roles = guild_id.roles(&ctx.http()).await.unwrap();
