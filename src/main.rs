@@ -2,7 +2,7 @@ mod commands;
 mod event_handler;
 
 use dotenv::dotenv;
-use poise::serenity_prelude::{self as serenity, MessageId};
+use poise::serenity_prelude::{self as serenity, ApplicationId, MessageId};
 use std::env::var;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -27,8 +27,10 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 }
 
-async fn clear_old_commands(bot_token: &str) -> Result<(), Error> {
-    let http = serenity::Http::new(bot_token);
+async fn clear_old_commands(bot_token: &str, application_id: ApplicationId) -> Result<(), Error> {
+    let http = serenity::HttpBuilder::new(bot_token)
+        .application_id(application_id)
+        .build();
     let global_commands = http.get_global_commands().await?;
 
     for command in global_commands {
@@ -95,10 +97,16 @@ async fn main() {
 
     let token = var("DISCORD_TOKEN")
         .expect("Missing `DISCORD_TOKEN` env var, see README for more information.");
+    let application_id = var("APPLICATION_ID")
+        .expect("Missing `application_id` env var, see README for more information.")
+        .parse::<u64>()
+        .expect("Cannot parse APPLICATION_ID from String to u64");
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
 
-    clear_old_commands(&token).await.unwrap();
+    clear_old_commands(&token, ApplicationId::new(application_id))
+        .await
+        .unwrap();
 
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)
