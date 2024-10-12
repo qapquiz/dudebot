@@ -27,6 +27,19 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 }
 
+async fn clear_old_commands(bot_token: &str) -> Result<(), Error> {
+    let http = serenity::Http::new(bot_token);
+    let global_commands = http.get_global_commands().await?;
+
+    for command in global_commands {
+        if let Some(guild_id) = command.guild_id {
+            http.delete_guild_command(guild_id, command.id).await?;
+        }
+    }
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() {
     env_logger::init();
@@ -84,6 +97,8 @@ async fn main() {
         .expect("Missing `DISCORD_TOKEN` env var, see README for more information.");
     let intents =
         serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
+
+    clear_old_commands(&token).await.unwrap();
 
     let client = serenity::ClientBuilder::new(token, intents)
         .framework(framework)

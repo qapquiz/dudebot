@@ -14,18 +14,24 @@ pub async fn event_handler(
             let channels = guild_id.channels(&ctx.http()).await.unwrap();
             let welcome_channel = channels
                 .values()
-                .find(|channel| channel.id == data.welcome_channel_id)
-                .unwrap();
+                .find(|channel| channel.id == data.welcome_channel_id);
 
-            welcome_channel
-                .send_message(
-                    &ctx.http(),
-                    CreateMessage::new().content(format!(
-                        "Welcome <@{}> to the Noodles party!",
-                        new_member.user.id
-                    )),
-                )
-                .await?;
+            match welcome_channel {
+                Some(channel) => {
+                    channel
+                        .send_message(
+                            &ctx.http(),
+                            CreateMessage::new().content(format!(
+                                "Welcome <@{}> to the Noodles party!",
+                                new_member.user.id
+                            )),
+                        )
+                        .await?;
+                }
+                None => {
+                    println!("there is no welcome channel");
+                }
+            }
         }
         serenity::FullEvent::ReactionAdd { add_reaction } => {
             if add_reaction.message_id == data.verifed_message_id
@@ -33,16 +39,21 @@ pub async fn event_handler(
             {
                 let guild_id = add_reaction.guild_id.unwrap();
                 let roles = guild_id.roles(&ctx.http()).await.unwrap();
-                let verified_role = roles.values().find(|role| role.name == "verified").unwrap();
+                let verified_role = roles.values().find(|role| role.name == "verified");
 
-                add_reaction
-                    .member
-                    .clone()
-                    .unwrap()
-                    .add_role(&ctx.http(), verified_role.id)
-                    .await?;
+                match verified_role {
+                    Some(role) => {
+                        add_reaction
+                            .member
+                            .clone()
+                            .unwrap()
+                            .add_role(&ctx.http(), role.id)
+                            .await?;
 
-                println!("Verified member via ReactionAdd");
+                        println!("Verified member via ReactionAdd");
+                    }
+                    None => println!("there is no verified role"),
+                }
             }
         }
         _ => {}
