@@ -17,17 +17,11 @@ pub async fn verify(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-#[poise::command(
-    prefix_command,
-    slash_command,
-    guild_only,
-)]
+#[poise::command(prefix_command, slash_command, guild_only)]
 pub async fn create_verify_message(ctx: Context<'_>) -> Result<(), Error> {
     let embed = CreateEmbed::new()
         .title("Welcome to noodles ≈ 🍜")
-        .description(
-            "Click the ✅ to verify and gain access to the rest of the server."
-        );
+        .description("Click the ✅ to verify and gain access to the rest of the server.");
 
     ctx.send(CreateReply::default().embed(embed).reply(false))
         .await?;

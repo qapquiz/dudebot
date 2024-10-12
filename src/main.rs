@@ -1,7 +1,8 @@
 mod commands;
+mod event_handler;
 
 use dotenv::dotenv;
-use poise::serenity_prelude::{self as serenity, CacheHttp, MessageId};
+use poise::serenity_prelude::{self as serenity, MessageId};
 use std::env::var;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -9,6 +10,7 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 
 pub struct Data {
     verifed_message_id: MessageId,
+    welcome_channel_id: u64,
 }
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
@@ -57,7 +59,7 @@ async fn main() {
             })
         },
         event_handler: |ctx, event, framework, data| {
-            Box::pin(event_handler(ctx, event, framework, data))
+            Box::pin(event_handler::event_handler(ctx, event, framework, data))
         },
         on_error: |error| Box::pin(on_error(error)),
         ..Default::default()
@@ -71,6 +73,7 @@ async fn main() {
 
                 Ok(Data {
                     verifed_message_id: MessageId::new(1028609208989523969_u64),
+                    welcome_channel_id: 1057511145243676762_u64,
                 })
             })
         })
@@ -87,31 +90,4 @@ async fn main() {
         .await;
 
     client.unwrap().start().await.unwrap()
-}
-
-async fn event_handler(
-    ctx: &serenity::Context,
-    event: &serenity::FullEvent,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
-    data: &Data,
-) -> Result<(), Error> {
-    if let serenity::FullEvent::ReactionAdd { add_reaction } = event {
-        if add_reaction.message_id == data.verifed_message_id && add_reaction.emoji.unicode_eq("✅")
-        {
-            let guild_id = add_reaction.guild_id.unwrap();
-            let roles = guild_id.roles(&ctx.http()).await.unwrap();
-            let verified_role = roles.values().find(|role| role.name == "verified").unwrap();
-
-            add_reaction
-                .member
-                .clone()
-                .unwrap()
-                .add_role(&ctx.http(), verified_role.id)
-                .await?;
-
-            println!("Verified member via ReactionAdd");
-        }
-    }
-
-    Ok(())
 }
