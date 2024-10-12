@@ -1,7 +1,7 @@
 mod commands;
 
-use poise::serenity_prelude as serenity;
 use dotenv::dotenv;
+use poise::serenity_prelude as serenity;
 use std::env::var;
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -29,8 +29,21 @@ async fn main() {
     dotenv().ok();
 
     let options = poise::FrameworkOptions {
-        commands: vec![commands::verify()],
-        command_check: Some(|_ctx| Box::pin(async move { Ok(false) })),
+        commands: vec![
+            commands::create_verify_message(),
+            commands::verify(),
+        ],
+        prefix_options: poise::PrefixFrameworkOptions {
+            prefix: Some("!".into()),
+            ..Default::default()
+        },
+        command_check: Some(|ctx| Box::pin(async move {
+            if ctx.command().name == "verify" {
+                return Ok(true)
+            }
+
+            Ok(false)
+        })),
         skip_checks_for_owners: true,
         pre_command: |ctx| {
             Box::pin(async move {
@@ -51,6 +64,7 @@ async fn main() {
             Box::pin(async move {
                 println!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
+
                 Ok(Data {})
             })
         })
