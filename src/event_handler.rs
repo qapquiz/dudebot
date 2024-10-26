@@ -34,6 +34,7 @@ pub async fn event_handler(
             }
         }
         serenity::FullEvent::ReactionAdd { add_reaction } => {
+            // for add verified role when reacting to the verify message
             if add_reaction.message_id == data.verifed_message_id
                 && add_reaction.emoji.unicode_eq("✅")
             {

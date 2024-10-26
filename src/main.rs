@@ -48,7 +48,11 @@ async fn main() {
     dotenv().ok();
 
     let options = poise::FrameworkOptions {
-        commands: vec![commands::create_verify_message(), commands::verify()],
+        commands: vec![
+            commands::create_embed_message(),
+            commands::create_verify_message(),
+            commands::verify(),
+        ],
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("!".into()),
             ..Default::default()
